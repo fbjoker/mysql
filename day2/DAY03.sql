@@ -238,24 +238,39 @@ SELECT * FROM emp WHERE sal > (SELECT AVG(sal) FROM emp WHERE deptno=10);
 #有哪些部门的平均工资高于30号部门的平均工资??
 #SELECT * FROM emp e INNER JOIN dept d ON e.`deptno`=d.`deptno` group by e.`deptno`  having avg(sal)>(select sal from emp where deptno=10);
 
-SELECT deptno,AVG(sal) FROM emp GROUP BY deptno ;
+SELECT AVG(sal) FROM emp WHERE deptno=30;
+SELECT deptno,AVG(sal) FROM emp GROUP BY deptno HAVING AVG(sal)>(SELECT AVG(sal) FROM emp WHERE deptno=30) ;
 
 
-
+SELECT deptno,AVG(sal) FROM emp GROUP BY deptno HAVING AVG(sal) > (SELECT AVG(sal) FROM emp WHERE deptno=30);
 #工资>JONES工资
 SELECT * FROM emp WHERE sal >(SELECT sal FROM emp WHERE ename='jones');
+
+	SELECT * FROM emp WHERE sal > (SELECT sal FROM emp WHERE ename='JONES');
+
 #查询与SCOTT同一个部门的员工
 SELECT * FROM emp WHERE deptno=(SELECT deptno FROM emp WHERE ename='scott');
+
+SELECT * FROM emp WHERE deptno = (SELECT deptno FROM emp WHERE ename = 'SCOTT');
 #工资高于30号部门所有人的员工信息
 SELECT * FROM emp WHERE sal > ALL (SELECT sal FROM emp WHERE deptno=30 );
+
+SELECT * FROM emp WHERE sal > (SELECT MAX(sal) FROM emp WHERE deptno = 30);
 #查询工作和工资与MARTIN完全相同的员工信息
 SELECT * FROM emp WHERE  job=(SELECT job FROM emp WHERE ename='martin') AND sal=(SELECT sal FROM emp WHERE ename='martin');
+SELECT * FROM emp WHERE (job,sal) IN (SELECT job,sal FROM emp WHERE ename='MARTIN');
 #有两个以上直接下属的员工信息??
+SELECT DISTINCT job FROM emp;
 
+SELECT mgr,COUNT(*) c FROM emp GROUP BY mgr HAVING c>2 ;
+SELECT * FROM emp WHERE empno IN (SELECT mgr FROM emp GROUP BY mgr HAVING COUNT(*)>2 );
+
+SELECT * FROM emp e1 WHERE e1.empno IN (SELECT e2.mgr FROM emp e2 GROUP BY e2.mgr HAVING COUNT(*)>2);
 #查询员工编号为7788的员工名称,员工工资,部门名称,部门地址
 
 SELECT ename, sal, dname, loc FROM emp e INNER JOIN dept d ON e.`deptno`=d.`deptno` WHERE e.`empno`=7788;
 
+	SELECT ename,sal ,dname, loc FROM emp ,dept WHERE emp.deptno = dept.deptno AND empno=7788;
 /*
 
 	1. 查询出高于本部门平均工资的员工信息
@@ -269,12 +284,15 @@ SELECT ename, sal, dname, loc FROM emp e INNER JOIN dept d ON e.`deptno`=d.`dept
 
 */
 
-SELECT AVG(sal) FROM emp GROUP BY deptno;
-SELECT * FROM  emp   GROUP BY deptno HAVING sal >(SELECT AVG(sal) FROM emp GROUP BY deptno);
+1.
+SELECT AVG(sal)  FROM emp GROUP BY deptno  HAVING emp.sal >AVG(sal);
 
-SELECT * FROM emp e INNER JOIN dept d ON e.`deptno`=d.`deptno`;
-SELECT * FROM emp e LEFT OUTER JOIN dept d ON e.`deptno`=d.`deptno`;
-SELECT * FROM emp e RIGHT OUTER JOIN dept d ON e.`deptno`=d.`deptno`;
+SELECT * FROM emp WHERE emp.sal >(SELECT AVG(sal) FROM WHERE deptno=deptno emp  GROUP BY deptno);
+
+SELECT AVG(sal) FROM emp GROUP BY deptno;
+SELECT AVG(sal) FROM emp e2 WHERE deptno=e2.deptno  GROUP BY e2.deptno
+
+SELECT * FROM emp e1 WHERE e1.sal > (SELECT AVG(e2.sal) FROM emp e2 WHERE e1.deptno=e2.deptno  GROUP BY e2.deptno);
 2.
 SELECT * FROM emp e INNER JOIN dept d ON e.`deptno`=d.`deptno` WHERE loc ='dallas' AND sal>
 (SELECT AVG(sal) FROM emp e INNER JOIN dept d ON e.`deptno`=d.`deptno` WHERE loc='new york');
@@ -283,6 +301,12 @@ SELECT ename , empno,mgr 经理编号 FROM emp  WHERE empno=7369;
 
 SELECT ename FROM emp WHERE mgr=
 
+SELECT e1.empno,e1.ename,e1.mgr,mgrtable.ename,mgrtable.empno FROM emp e1,emp mgrtable WHERE e1.mgr = mgrtable.empno; 
 
 
-
+1.分组统计每个部门员工最高的薪资是多少
+	SELECT MAX(sal),deptno FROM emp GROUP BY deptno;
+	
+	SELECT * FROM emp e WHERE e.`sal`=(SELECT MAX(e2.sal) FROM emp e2  WHERE e2.`deptno`=e.`deptno` GROUP BY e2.deptno);
+	2.算出结果
+	SELECT * FROM emp e1 WHERE e1.sal = (SELECT MAX(sal) FROM emp e2 WHERE e1.deptno = e2.deptno GROUP BY deptno);
